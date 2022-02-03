@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/ringbuffer
+ringbuffer.so
+ringbuffer.dylib
+ringbuffer.dll
+ringbuffer.a
+ringbuffer.lib
+ringbuffer-test-*
+*.exe
+*.o
+*.obj
+*.lst

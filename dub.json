@@ -1,0 +1,9 @@
+{
+	"authors": [
+		"Su"
+	],
+	"copyright": "Copyright © 2022, Su",
+	"description": "a simple @nogc ringbuffer",
+	"license": "AGPL-3.0 or later",
+	"name": "ringbuffer"
+}
