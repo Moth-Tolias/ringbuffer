@@ -17,8 +17,8 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	private auto _length() @safe @nogc pure nothrow const
 	{
-		immutable write = (writeIndex % maxLength);
-		immutable read = (readIndex % maxLength);
+		immutable write = next(writeIndex);
+		immutable read = next(readIndex);
 		if (read > write)
 		{
 			return (write + maxLength) - read;
@@ -28,7 +28,7 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	invariant(_length <= maxLength);
 
-	private auto next(size_t rhs) @safe @nogc pure nothrow
+	private auto next(in size_t rhs) @safe @nogc pure nothrow const
 	{
 		import std.math.traits : isPowerOf2;
 		static if (isPowerOf2(maxLength))
