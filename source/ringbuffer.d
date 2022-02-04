@@ -121,7 +121,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	/// range interface
 	bool empty() @safe @nogc nothrow pure const
 	{
-		return length > 0;
+		return length == 0;
 	}
 
 	/// ditto
@@ -185,5 +185,18 @@ struct RingBuffer(DataType, size_t maxLength)
 	{
 		foo.push(i);
 		foo.shift;
+	}
+
+	// range test
+	int i;
+	foreach(val; foo)
+	{
+		switch(i)
+		{
+			case 0: assert(val == 97); ++i; break;
+			case 1: assert(val == 98); ++i; break;
+			case 2: assert(val == 99); ++i; break;
+			default: assert(false);
+		}
 	}
 }
