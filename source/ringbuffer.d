@@ -11,25 +11,52 @@ module ringbuffer;
 
 struct RingBuffer(DataType, size_t maxLength)
 {
-	private size_t readIndex;
+	private size_t readIndex; //todo: size_t is overkill in 99.999% of cases
 	private size_t writeIndex;
 	private DataType[maxLength] data;
 
 	private auto _length() @safe @nogc pure nothrow const
 	{
-		immutable write = next(writeIndex);
-		immutable read = next(readIndex);
-		if (read > write)
+		//todo: there is almost certainly a better way to go about this
+		if (writeIndex == readIndex)
+		{
+			return 0;
+		}
+
+		immutable write = sanitize(writeIndex);
+		immutable read = sanitize(readIndex);
+
+		if (write == read)
+		{
+			return maxLength;
+		}
+
+		if (write > read)
+		{
+			return write - read;
+		}
+		else
 		{
 			return (write + maxLength) - read;
 		}
-
-		return write - read;
 	}
 
 	invariant(_length <= maxLength);
 
 	private auto next(in size_t rhs) @safe @nogc pure nothrow const
+	{
+		import std.math.traits : isPowerOf2;
+		static if (isPowerOf2(maxLength))
+		{
+			return rhs & ((maxLength * 2) - 1);
+		}
+		else
+		{
+			return rhs % (maxLength * 2);
+		}
+	}
+
+	private auto sanitize(in size_t rhs) @safe @nogc pure nothrow const
 	{
 		import std.math.traits : isPowerOf2;
 		static if (isPowerOf2(maxLength))
@@ -66,7 +93,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	/// push to buffer
 	void push(in DataType rhs) @safe @nogc pure nothrow
 	{
-		data[writeIndex] = rhs;
+		data[sanitize(writeIndex)] = rhs;
 		writeIndex = next(writeIndex + 1);
 	}
 
@@ -99,7 +126,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	DataType shift() @safe @nogc nothrow pure
 	in (length > 0)
 	{
-		immutable result = data[readIndex];
+		immutable result = data[sanitize(readIndex)];
 		readIndex = next(readIndex + 1);
 		return result;
 	}
@@ -109,7 +136,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	in (length > 0)
 	{
 		writeIndex = next(writeIndex - 1);
-		return data[writeIndex];
+		return data[sanitize(writeIndex)];
 	}
 
 	/// empty the buffer
@@ -128,7 +155,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	/// ditto
 	DataType front() @safe @nogc nothrow const pure
 	{
-		return data[readIndex];
+		return data[sanitize(readIndex)];
 	}
 
 	/// ditto
@@ -164,9 +191,8 @@ struct RingBuffer(DataType, size_t maxLength)
 	assert(foo.capacity == 5);
 
 	foo.push(temp); //1, 2, 3, 0, 1, 2, 3, 4
-	assert(foo.length == 8);
+	assert(foo.length == 8); //not empty. a nasty bug.
 	assert(foo.capacity == 0);
-
 	assert(foo.shift == 1);
 
 	foo.clear();
@@ -206,23 +232,11 @@ struct RingBuffer(DataType, size_t maxLength)
 
 		++i;
 	}
-
-	foo.clear;
-	immutable temp2 = staticArray!(iota(8));
-	foreach(j; 0 .. 100) //one actual last stomp
-	{
-		foo.push(temp2);
-		foreach(k; 0 .. 8)
-		{
-			foo.shift;
-		}
-	}
 }
 
 /// example
 @safe @nogc nothrow unittest
 {
-
 	RingBuffer!(int, 5) buff; // non-power-of-two lengths are supported, though powers of two will be faster
 	buff.push(69);
 	buff ~= 420; //equivilent to the push syntax
