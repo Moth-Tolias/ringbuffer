@@ -45,28 +45,12 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	private auto next(in size_t rhs) @safe @nogc pure nothrow const
 	{
-		import std.math.traits : isPowerOf2;
-		static if (isPowerOf2(maxLength))
-		{
-			return rhs & ((maxLength * 2) - 1);
-		}
-		else
-		{
-			return rhs % (maxLength * 2);
-		}
+		return rhs % (maxLength * 2);
 	}
 
 	private auto sanitize(in size_t rhs) @safe @nogc pure nothrow const
 	{
-		import std.math.traits : isPowerOf2;
-		static if (isPowerOf2(maxLength))
-		{
-			return rhs & (maxLength - 1);
-		}
-		else
-		{
-			return rhs % maxLength;
-		}
+		return rhs % maxLength;
 	}
 
 	///
