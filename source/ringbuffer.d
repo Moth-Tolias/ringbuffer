@@ -23,6 +23,7 @@ struct RingBuffer(DataType, size_t maxLength)
 		{
 			return (write + maxLength) - read;
 		}
+
 		return write - read;
 	}
 
@@ -163,6 +164,10 @@ struct RingBuffer(DataType, size_t maxLength)
 	assert(foo.capacity == 5);
 
 	foo.push(temp); //1, 2, 3, 0, 1, 2, 3, 4
+	assert(foo.length == 8);
+	assert(foo.capacity == 0);
+
+	assert(foo.shift == 1);
 
 	foo.clear();
 	assert(foo.length == 0);
@@ -193,10 +198,53 @@ struct RingBuffer(DataType, size_t maxLength)
 	{
 		switch(i)
 		{
-			case 0: assert(val == 97); ++i; break;
-			case 1: assert(val == 98); ++i; break;
-			case 2: assert(val == 99); ++i; break;
+			case 0: assert(val == 97); break;
+			case 1: assert(val == 98); break;
+			case 2: assert(val == 99); break;
 			default: assert(false);
 		}
+
+		++i;
 	}
+
+	foo.clear;
+	immutable temp2 = staticArray!(iota(8));
+	foreach(j; 0 .. 100) //one actual last stomp
+	{
+		foo.push(temp2);
+		foreach(k; 0 .. 8)
+		{
+			foo.shift;
+		}
+	}
+}
+
+/// example
+@safe @nogc nothrow unittest
+{
+
+	RingBuffer!(int, 5) buff; // non-power-of-two lengths are supported, though powers of two will be faster
+	buff.push(69);
+	buff ~= 420; //equivilent to the push syntax
+	assert(buff.shift == 69);
+	assert(buff.shift == 420);
+
+	import std.array : staticArray;
+	import std.range : iota;
+	immutable int[5] temp = staticArray!(iota(5));
+
+	buff.push(temp); //multiple items may be pushed in a single call
+
+	assert(buff.length == 5);
+	assert(buff.capacity == 0);
+
+	assert(buff.pop == 4);
+
+	assert(buff.length == 4);
+	assert(buff.capacity == 1);
+
+	buff.clear();
+
+	assert(buff.length == 0);
+	assert(buff.capacity == 5);
 }
