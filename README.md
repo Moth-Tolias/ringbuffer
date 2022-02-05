@@ -28,9 +28,10 @@ in addition to these, [the range interface](https://dlang.org/spec/statement.htm
 ```d
 void main() @safe @nogc nothrow
 {
-	RingBuffer!(int, 5) buff; // non-power-of-two lengths are supported, though powers of two will be faster
+	RingBuffer!(int, 5) buff;
+	// non-power-of-two lengths are supported, though powers of two will be faster
 	buff.push(69);
-	buff ~= 420; //equivilent to the push syntax
+	buff ~= 420; // equivilent to the push syntax
 	assert(buff.shift == 69);
 	assert(buff.shift == 420);
 
@@ -38,7 +39,7 @@ void main() @safe @nogc nothrow
 	import std.range : iota;
 	immutable int[5] temp = staticArray!(iota(5));
 
-	buff.push(temp); //multiple items may be pushed in a single call
+	buff.push(temp); // multiple items may be pushed in a single call
 
 	assert(buff.length == 5);
 	assert(buff.capacity == 0);
