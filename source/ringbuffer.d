@@ -138,7 +138,7 @@ struct RingBuffer(DataType, size_t maxLength)
 }
 
 /// example
-@safe @nogc nothrow unittest
+@safe @nogc nothrow pure unittest
 {
 	RingBuffer!(int, 5) buff;
 	buff.push(69);
@@ -198,7 +198,7 @@ private struct RingBufferRangeInterface(DataType)
 	}
 }
 
-@safe @nogc nothrow unittest
+@safe @nogc nothrow pure unittest
 {
 	RingBuffer!(int, 8) foo;
 	assert(foo.length == 0);
