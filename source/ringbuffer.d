@@ -1,7 +1,7 @@
 module ringbuffer;
 
 /**
-* a simple @safe and @nogc-compatible template ringbuffer.
+* a simple template ringbuffer, compatible with @safe, @nogc, pure and nothrow code.
 * Authors: Susan
 * Date: 2022-02-03
 * Licence: AGPL-3.0 or later
@@ -15,7 +15,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	private size_t writeIndex;
 	private DataType[maxLength] data;
 
-	private auto _length() @safe @nogc pure nothrow const
+	private auto _length() const
 	{
 		//todo: there is almost certainly a better way to go about this
 		if (writeIndex == readIndex)
@@ -54,19 +54,19 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	///
-	@property auto length() @safe @nogc pure nothrow const
+	@property auto length() const
 	{
 		return _length;
 	}
 
 	///
-	@property auto capacity() @safe @nogc pure nothrow const
+	@property auto capacity() const
 	{
 		return maxLength - length;
 	}
 
 	/// assignment
-	void opAssign(in DataType[] rhs) @safe @nogc nothrow pure
+	void opAssign(in DataType[] rhs)
 	in (rhs.length <= maxLength)
 	{
 		data[0 .. rhs.length] = rhs;
@@ -75,14 +75,14 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// push to buffer
-	void push(in DataType rhs) @safe @nogc pure nothrow
+	void push(in DataType rhs)
 	{
 		data[sanitize(writeIndex)] = rhs;
 		writeIndex = next(writeIndex + 1);
 	}
 
 	/// ditto
-	void push(in DataType[] rhs) @safe @nogc pure nothrow
+	void push(in DataType[] rhs)
 	{
 		foreach(DataType d; rhs)
 		{
@@ -91,7 +91,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// ditto
-	void opOpAssign(string op)(in DataType rhs) @safe @nogc nothrow pure
+	void opOpAssign(string op)(in DataType rhs)
 		if (op == "~")
 	in (length + 1 <= maxLength)
 	{
@@ -99,7 +99,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// ditto
-	void opOpAssign(string op)(in DataType[] rhs) @safe @nogc nothrow pure
+	void opOpAssign(string op)(in DataType[] rhs)
 		if (op == "~")
 	in (length + rhs.length <= maxLength)
 	{
@@ -107,7 +107,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// retrieve item from buffer (fifo)
-	DataType shift() @safe @nogc nothrow pure
+	DataType shift()
 	in (length > 0)
 	{
 		immutable result = data[sanitize(readIndex)];
@@ -116,7 +116,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// retrieve item from buffer (lifo)
-	DataType pop() @safe @nogc nothrow pure
+	DataType pop()
 	in (length > 0)
 	{
 		writeIndex = next(writeIndex - 1);
@@ -124,14 +124,14 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// empty the buffer
-	void clear() @safe @nogc nothrow pure
+	void clear()
 	{
 		data[] = DataType.init;
 		writeIndex = readIndex;
 	}
 
 	/// range interface
-	auto opIndex() @safe @nogc nothrow pure const
+	auto opIndex() const
 	{
 		return RingBufferRangeInterface!DataType(data[], readIndex, length);
 	}
@@ -174,24 +174,24 @@ private struct RingBufferRangeInterface(DataType)
 
 	@disable this();
 
-	package this(in DataType[] source, in size_t startIndex, in size_t length) @safe @nogc nothrow pure
+	package this(in DataType[] source, in size_t startIndex, in size_t length)
 	{
 		this.source = source;
 		this.startIndex = startIndex;
 		this.length = length;
 	}
 
-	bool empty() @safe @nogc nothrow pure const
+	bool empty() const
 	{
 		return length == 0;
 	}
 
-	DataType front() @safe @nogc nothrow const pure
+	DataType front()
 	{
 		return source[startIndex % source.length];
 	}
 
-	void popFront() @safe @nogc nothrow pure
+	void popFront()
 	{
 		++startIndex;
 		--length;

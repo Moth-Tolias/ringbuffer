@@ -1,5 +1,5 @@
 # ringbuffer
-a simple ringbuffer template, compatible with @safe and @nogc.
+a simple ringbuffer template, compatible with `@safe`, `@nogc`, `pure` and `nothrow` code.
 
 ## usage
 ringbuffer implements the following methods and properties:
@@ -29,7 +29,6 @@ in addition to these, [the range interface](https://dlang.org/spec/statement.htm
 void main() @safe @nogc nothrow
 {
 	RingBuffer!(int, 5) buff;
-	// non-power-of-two lengths are supported, though powers of two will be faster
 	buff.push(69);
 	buff ~= 420; // equivilent to the push syntax
 	assert(buff.shift == 69);
