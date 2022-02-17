@@ -131,7 +131,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// range interface
-	auto opIndex()
+	auto opIndex() @safe @nogc nothrow pure const
 	{
 		return RingBufferRangeInterface!DataType(data[], readIndex, length);
 	}
@@ -165,7 +165,6 @@ struct RingBuffer(DataType, size_t maxLength)
 	assert(buff.length == 0);
 	assert(buff.capacity == 5);
 }
-
 
 private struct RingBufferRangeInterface(DataType)
 {
@@ -252,9 +251,11 @@ private struct RingBufferRangeInterface(DataType)
 		foo.shift;
 	}
 
+	immutable bar = foo;
+
 	// range test
 	int i;
-	foreach(val; foo)
+	foreach(val; bar)
 	{
 		switch(i)
 		{
