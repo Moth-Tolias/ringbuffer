@@ -131,21 +131,71 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// range interface
+	auto opIndex()
+	{
+		return RingBufferRangeInterface!DataType(data[], readIndex, length);
+	}
+}
+
+/// example
+@safe @nogc nothrow unittest
+{
+	RingBuffer!(int, 5) buff;
+	buff.push(69);
+	buff ~= 420; // equivilent to the push syntax
+	assert(buff.shift == 69);
+	assert(buff.shift == 420);
+
+	import std.array : staticArray;
+	import std.range : iota;
+	immutable int[5] temp = staticArray!(iota(5));
+
+	buff.push(temp); // multiple items may be pushed in a single call
+
+	assert(buff.length == 5);
+	assert(buff.capacity == 0);
+
+	assert(buff.pop == 4);
+
+	assert(buff.length == 4);
+	assert(buff.capacity == 1);
+
+	buff.clear();
+
+	assert(buff.length == 0);
+	assert(buff.capacity == 5);
+}
+
+
+private struct RingBufferRangeInterface(DataType)
+{
+	private const(DataType[]) source;
+	private size_t startIndex;
+	private size_t length;
+
+	@disable this();
+
+	package this(in DataType[] source, in size_t startIndex, in size_t length) @safe @nogc nothrow pure
+	{
+		this.source = source;
+		this.startIndex = startIndex;
+		this.length = length;
+	}
+
 	bool empty() @safe @nogc nothrow pure const
 	{
 		return length == 0;
 	}
 
-	/// ditto
 	DataType front() @safe @nogc nothrow const pure
 	{
-		return data[sanitize(readIndex)];
+		return source[startIndex % source.length];
 	}
 
-	/// ditto
 	void popFront() @safe @nogc nothrow pure
 	{
-		shift();
+		++startIndex;
+		--length;
 	}
 }
 
@@ -216,34 +266,4 @@ struct RingBuffer(DataType, size_t maxLength)
 
 		++i;
 	}
-}
-
-/// example
-@safe @nogc nothrow unittest
-{
-	RingBuffer!(int, 5) buff;
-	// non-power-of-two lengths are supported, though powers of two will be faster
-	buff.push(69);
-	buff ~= 420; // equivilent to the push syntax
-	assert(buff.shift == 69);
-	assert(buff.shift == 420);
-
-	import std.array : staticArray;
-	import std.range : iota;
-	immutable int[5] temp = staticArray!(iota(5));
-
-	buff.push(temp); // multiple items may be pushed in a single call
-
-	assert(buff.length == 5);
-	assert(buff.capacity == 0);
-
-	assert(buff.pop == 4);
-
-	assert(buff.length == 4);
-	assert(buff.capacity == 1);
-
-	buff.clear();
-
-	assert(buff.length == 0);
-	assert(buff.capacity == 5);
 }
