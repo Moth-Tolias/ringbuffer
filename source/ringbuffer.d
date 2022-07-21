@@ -15,7 +15,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	private size_t writeIndex;
 	private DataType[maxLength] data;
 
-	private auto _length() const
+	private auto _length() const @nogc nothrow pure @safe
 	{
 		//todo: there is almost certainly a better way to go about this
 		if (writeIndex == readIndex)
@@ -43,30 +43,30 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	invariant(_length <= maxLength);
 
-	private auto next(in size_t rhs) @safe @nogc pure nothrow const
+	private auto next(in size_t rhs) const @nogc nothrow pure @safe
 	{
 		return rhs % (maxLength * 2);
 	}
 
-	private auto sanitize(in size_t rhs) @safe @nogc pure nothrow const
+	private auto sanitize(in size_t rhs) const @nogc nothrow pure @safe
 	{
 		return rhs % maxLength;
 	}
 
 	///
-	@property auto length() const
+	@property auto length() const @nogc nothrow pure @safe
 	{
 		return _length;
 	}
 
 	///
-	@property auto capacity() const
+	@property auto capacity() const @nogc nothrow pure @safe
 	{
 		return maxLength - length;
 	}
 
 	/// assignment
-	void opAssign(in DataType[] rhs)
+	void opAssign(inout DataType[] rhs)
 	in (rhs.length <= maxLength)
 	{
 		data[0 .. rhs.length] = rhs;
@@ -75,14 +75,14 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// push to buffer
-	void push(in DataType rhs)
+	void push(inout DataType rhs)
 	{
 		data[sanitize(writeIndex)] = rhs;
 		writeIndex = next(writeIndex + 1);
 	}
 
 	/// ditto
-	void push(in DataType[] rhs)
+	void push(inout DataType[] rhs)
 	{
 		foreach(DataType d; rhs)
 		{
@@ -91,7 +91,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// ditto
-	void opOpAssign(string op)(in DataType rhs)
+	void opOpAssign(string op)(inout DataType rhs)
 		if (op == "~")
 	in (length + 1 <= maxLength)
 	{
@@ -99,7 +99,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// ditto
-	void opOpAssign(string op)(in DataType[] rhs)
+	void opOpAssign(string op)(inout DataType[] rhs)
 		if (op == "~")
 	in (length + rhs.length <= maxLength)
 	{
@@ -110,7 +110,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	DataType shift()
 	in (length > 0)
 	{
-		immutable result = data[sanitize(readIndex)];
+		auto result = data[sanitize(readIndex)];
 		readIndex = next(readIndex + 1);
 		return result;
 	}
@@ -142,7 +142,7 @@ struct RingBuffer(DataType, size_t maxLength)
 {
 	RingBuffer!(int, 5) buff;
 	buff.push(69);
-	buff ~= 420; // equivilent to the push syntax
+	buff ~= 420; // equivalent to the push syntax
 	assert(buff.shift == 69);
 	assert(buff.shift == 420);
 
