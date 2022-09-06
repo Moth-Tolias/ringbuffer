@@ -48,7 +48,7 @@ struct RingBuffer(DataType, size_t maxLength)
 		return rhs % (maxLength * 2);
 	}
 
-	private auto sanitize(in size_t rhs) @safe @nogc pure nothrow const
+	private auto sanitize(in size_t rhs) const @nogc nothrow pure @safe
 	{
 		return rhs % maxLength;
 	}
@@ -66,7 +66,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// assignment
-	void opAssign(in DataType[] rhs)
+	void opAssign(R)(R rhs)
 	in (rhs.length <= maxLength)
 	{
 		data[0 .. rhs.length] = rhs;
@@ -75,14 +75,14 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// push to buffer
-	void push(in DataType rhs)
+	void push(DataType rhs)
 	{
 		data[sanitize(writeIndex)] = rhs;
 		writeIndex = next(writeIndex + 1);
 	}
 
 	/// ditto
-	void push(in DataType[] rhs)
+	void push(R)(R rhs)
 	{
 		foreach(DataType d; rhs)
 		{
@@ -91,7 +91,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// ditto
-	void opOpAssign(string op)(in DataType rhs)
+	void opOpAssign(string op)(DataType rhs)
 		if (op == "~")
 	in (length + 1 <= maxLength)
 	{
@@ -110,7 +110,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	DataType shift()
 	in (length > 0)
 	{
-		immutable result = data[sanitize(readIndex)];
+		auto result = data[sanitize(readIndex)];
 		readIndex = next(readIndex + 1);
 		return result;
 	}
@@ -186,7 +186,7 @@ private struct RingBufferRangeInterface(DataType)
 		return length == 0;
 	}
 
-	DataType front()
+	auto front()
 	{
 		return source[startIndex % source.length];
 	}
@@ -267,4 +267,14 @@ private struct RingBufferRangeInterface(DataType)
 
 		++i;
 	}
+}
+
+nothrow pure @safe unittest
+{
+	class C
+	{
+		int field;
+	}
+
+	RingBuffer!(C, 8) foo;
 }
