@@ -276,5 +276,29 @@ nothrow pure @safe unittest
 		int field;
 	}
 
-	RingBuffer!(C, 8) foo;
+	RingBuffer!(C, 6) foo;
+	assert(foo.length == 0);
+	assert(foo.capacity == 6);
+
+	C c = new C;
+
+	foo.push(c);
+	assert(foo.shift is c);
+	foo.push(c);
+	assert(foo.pop is c);
+
+	foo.clear;
+
+	foreach(i; 0 .. foo.capacity)
+	{
+		auto temp = new C;
+		temp.field = cast(int)i;
+		foo.push(temp);
+	}
+
+	import std.range: enumerate;
+	foreach(i, temp; foo[].enumerate(0))
+	{
+		assert(foo.shift.field == i);
+	}
 }
