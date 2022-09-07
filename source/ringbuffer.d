@@ -99,7 +99,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// ditto
-	void opOpAssign(string op)(inout DataType[] rhs)
+	void opOpAssign(string op, R)(R rhs)
 		if (op == "~")
 	in (length + rhs.length <= maxLength)
 	{
@@ -174,7 +174,7 @@ private struct RingBufferRangeInterface(DataType)
 
 	@disable this();
 
-	package this(in DataType[] source, in size_t startIndex, in size_t length)
+	package this(R)(inout R source, in size_t startIndex, in size_t length)
 	{
 		this.source = source;
 		this.startIndex = startIndex;
