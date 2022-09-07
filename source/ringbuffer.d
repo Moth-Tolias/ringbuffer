@@ -1,14 +1,16 @@
-module ringbuffer;
-
 /**
 * a simple template ringbuffer, compatible with @safe, @nogc, pure and nothrow code.
 * Authors: Susan
 * Date: 2022-02-03
 * Licence: AGPL-3.0 or later
 * Copyright: Susan, 2022
+*
 * special thanks to my good friend flussence, whose advice while making this module was invaluable. <3
 */
 
+module ringbuffer;
+
+///
 struct RingBuffer(DataType, size_t maxLength)
 {
 	private size_t readIndex; //todo: size_t is overkill in 99.999% of cases
@@ -138,7 +140,7 @@ struct RingBuffer(DataType, size_t maxLength)
 }
 
 /// example
-@safe @nogc nothrow pure unittest
+@nogc nothrow pure @safe unittest
 {
 	RingBuffer!(int, 5) buff;
 	buff.push(69);
@@ -198,7 +200,7 @@ private struct RingBufferRangeInterface(DataType)
 	}
 }
 
-@safe @nogc nothrow pure unittest
+@nogc nothrow pure @safe unittest
 {
 	RingBuffer!(int, 8) foo;
 	assert(foo.length == 0);
