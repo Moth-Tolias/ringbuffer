@@ -137,6 +137,13 @@ struct RingBuffer(DataType, size_t maxLength)
 	{
 		return RingBufferRangeInterface!DataType(data[], readIndex, length);
 	}
+
+	///
+	auto opIndex(in size_t index)
+	in(index < length)
+	{
+		return data[sanitize(readIndex + index)];
+	}
 }
 
 /// example
@@ -209,6 +216,7 @@ private struct RingBufferRangeInterface(DataType)
 	foo.push(0); //0
 	assert(foo.length == 1);
 	assert(foo.capacity == 7);
+	assert(foo[0] == 0);
 
 	import std.array : staticArray;
 	import std.range : iota;
@@ -228,7 +236,9 @@ private struct RingBufferRangeInterface(DataType)
 	foo.push(temp); //1, 2, 3, 0, 1, 2, 3, 4
 	assert(foo.length == 8); //not empty. a nasty bug.
 	assert(foo.capacity == 0);
+	assert(foo[6] == 3);
 	assert(foo.shift == 1);
+	assert(foo[6] == 4);
 
 	foo.clear();
 	assert(foo.length == 0);
@@ -285,6 +295,7 @@ nothrow pure @safe unittest
 	C c = new C;
 
 	foo.push(c);
+	assert(foo[0] is c);
 	assert(foo.shift is c);
 	foo.push(c);
 	assert(foo.pop is c);
