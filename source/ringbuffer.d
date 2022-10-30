@@ -10,6 +10,9 @@
 
 module ringbuffer;
 
+import std.traits;
+import std.range;
+
 ///
 struct RingBuffer(DataType, size_t maxLength)
 {
@@ -55,6 +58,9 @@ struct RingBuffer(DataType, size_t maxLength)
 		return rhs % maxLength;
 	}
 
+	private bool amIMutable() { return true; }
+	private bool amIMutable() const { return true; }
+
 	///
 	@property auto length() const @nogc nothrow pure @safe
 	{
@@ -76,7 +82,7 @@ struct RingBuffer(DataType, size_t maxLength)
 		writeIndex = rhs.length;
 	}
 
-	/// push to buffer
+	/// push to buffer (lifo)
 	void push(DataType rhs)
 	{
 		data[sanitize(writeIndex)] = rhs;
@@ -84,7 +90,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// ditto
-	void push(R)(R rhs)
+	void push(R)(R rhs) if (isImplicitlyConvertible!(ElementType!(R), DataType))
 	{
 		foreach(DataType d; rhs)
 		{
@@ -102,10 +108,26 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	/// ditto
 	void opOpAssign(string op, R)(R rhs)
-		if (op == "~")
+		if (op == "~" && isImplicitlyConvertible!(ElementType!(R), DataType))
 	in (length + rhs.length <= maxLength)
 	{
 		push(rhs);
+	}
+
+	/// push to buffer (fifo)
+	void unshift(DataType rhs)
+	{
+		data[sanitize(readIndex - 1)] = rhs;
+		readIndex = next(readIndex - 1);
+	}
+
+	/// ditto
+	void unshift(R)(R rhs) if (isImplicitlyConvertible!(ElementType!(R), DataType))
+	{
+		foreach(DataType d; rhs)
+		{
+			unshift(d);
+		}
 	}
 
 	/// retrieve item from buffer (fifo)
@@ -133,9 +155,9 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	/// range interface
-	auto opIndex() const
+	auto opIndex() inout
 	{
-		return RingBufferRangeInterface!DataType(data[], readIndex, length);
+		return RingBufferRangeInterface!(DataType, amIMutable())(data[], readIndex, length);
 	}
 
 	///
@@ -169,21 +191,32 @@ struct RingBuffer(DataType, size_t maxLength)
 	assert(buff.length == 4);
 	assert(buff.capacity == 1);
 
+	buff.unshift(666);
+	assert(buff.shift == 666);
+
 	buff.clear();
 
 	assert(buff.length == 0);
 	assert(buff.capacity == 5);
 }
 
-private struct RingBufferRangeInterface(DataType)
+private struct RingBufferRangeInterface(DataType, bool sussy)
 {
-	private const(DataType[]) source;
+	static if(!sussy)
+	{
+		private const(DataType[]) source;
+	}
+	else
+	{
+		private DataType[] source;
+	}
+
 	private size_t startIndex;
 	private size_t length;
 
 	@disable this();
 
-	package this(R)(inout R source, in size_t startIndex, in size_t length)
+	package this(R)(R source, in size_t startIndex, in size_t length)
 	{
 		this.source = source;
 		this.startIndex = startIndex;
@@ -203,6 +236,16 @@ private struct RingBufferRangeInterface(DataType)
 	void popFront()
 	{
 		++startIndex;
+		--length;
+	}
+
+	auto back()
+	{
+		return source[(startIndex + length) % source.length];
+	}
+
+	void popBack()
+	{
 		--length;
 	}
 }
@@ -279,6 +322,13 @@ private struct RingBufferRangeInterface(DataType)
 
 		++i;
 	}
+
+	foo.clear;
+	foreach_reverse(i2; bar) //test unshift
+	{
+		foo.unshift(i2);
+		assert(foo.pop == i2);
+	}
 }
 
 nothrow pure @safe unittest
@@ -309,9 +359,27 @@ nothrow pure @safe unittest
 		foo.push(temp);
 	}
 
+	RingBuffer!(C, 8) bar;
+	foreach_reverse(c2; foo)
+	{
+		auto temp = new C;
+		temp.field = c2.field;
+		bar.unshift(temp);
+	}
+
 	import std.range: enumerate;
 	foreach(i, temp; foo[].enumerate(0))
 	{
 		assert(foo.shift.field == i);
 	}
+
+	RingBuffer!(C, 16) baz; //todo: put size as an enum into ringbuffer
+	debug
+	{
+		import std.stdio: writeln;
+		//writeln(ElementType!(typeof(foo[])));
+		//writeln(isImplicitlyConvertible!(ElementType!(typeof(foo)), C));
+	}
+	//baz ~= foo;
+	//baz.unshift(bar);
 }

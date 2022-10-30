@@ -5,13 +5,16 @@ a simple ringbuffer template, compatible with `@safe`, `@nogc`, `pure` and `noth
 ringbuffer implements the following methods and properties:
 
 ### `push`
-adds an element to the buffer.
+adds an element to the start of the buffer.
+
+### `pop`
+returns the element at the end of the buffer, and removes it.
 
 ### `shift`
 returns the element at the start of the buffer, and removes it.
 
-### `pop`
-returns the element at the end of the buffer, and removes it.
+### `unshift`
+adds an element to the end of the buffer.
 
 ### `clear`
 empties the array.
