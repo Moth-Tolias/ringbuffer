@@ -43,7 +43,7 @@ struct RingBuffer(DataType, size_t maxLength)
 		}
 	}
 
-	invariant(_length <= maxLength);
+	invariant (_length <= maxLength);
 
 	private auto next(in size_t rhs) const @nogc nothrow pure @safe
 	{
@@ -86,7 +86,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	/// ditto
 	void push(R)(R rhs)
 	{
-		foreach(DataType d; rhs)
+		foreach (DataType d; rhs)
 		{
 			push(d);
 		}
@@ -94,7 +94,7 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	/// ditto
 	void opOpAssign(string op)(DataType rhs)
-		if (op == "~")
+	if (op == "~")
 	in (length + 1 <= maxLength)
 	{
 		push(rhs);
@@ -102,7 +102,7 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	/// ditto
 	void opOpAssign(string op, R)(R rhs)
-		if (op == "~")
+	if (op == "~")
 	in (length + rhs.length <= maxLength)
 	{
 		push(rhs);
@@ -118,7 +118,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	/// ditto
 	void unshift(R)(R rhs)
 	{
-		foreach(DataType d; rhs)
+		foreach (DataType d; rhs)
 		{
 			unshift(d);
 		}
@@ -162,7 +162,7 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	///
 	auto opIndex(in size_t index)
-	in(index < length)
+	in (index < length)
 	{
 		return data[sanitize(readIndex + index)];
 	}
@@ -177,8 +177,9 @@ struct RingBuffer(DataType, size_t maxLength)
 	assert(buff.shift == 69);
 	assert(buff.shift == 420);
 
-	import std.array : staticArray;
-	import std.range : iota;
+	import std.array: staticArray;
+	import std.range: iota;
+
 	immutable int[5] temp = staticArray!(iota(5));
 
 	buff.push(temp); // multiple items may be pushed in a single call
@@ -202,7 +203,7 @@ struct RingBuffer(DataType, size_t maxLength)
 
 private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 {
-	static if(isSourceMutable)
+	static if (isSourceMutable)
 	{
 		private DataType[] source;
 	}
@@ -261,8 +262,9 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 	assert(foo.capacity == 7);
 	assert(foo[0] == 0);
 
-	import std.array : staticArray;
-	import std.range : iota;
+	import std.array: staticArray;
+	import std.range: iota;
+
 	immutable int[5] temp = staticArray!(iota(5));
 
 	foo ~= temp[1 .. 3]; //0, 1, 2
@@ -300,7 +302,7 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 	assert(foo.length == 3);
 	assert(foo.capacity == 5);
 
-	foreach(i; 0 .. 100) //one last stomp
+	foreach (i; 0 .. 100) //one last stomp
 	{
 		foo.push(i);
 		foo.shift;
@@ -310,21 +312,23 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 
 	// range test
 	int i;
-	foreach(val; bar)
+	foreach (val; bar)
 	{
-		switch(i)
+		switch (i)
 		{
+			// dfmt off
 			case 0: assert(val == 97); break;
 			case 1: assert(val == 98); break;
 			case 2: assert(val == 99); break;
 			default: assert(false);
+			// dfmt on
 		}
 
 		++i;
 	}
 
 	foo.clear;
-	foreach_reverse(i2; bar) //test unshift
+	foreach_reverse (i2; bar) //test unshift
 	{
 		foo.unshift(i2);
 		assert(foo.pop == i2);
@@ -352,15 +356,15 @@ nothrow pure @safe unittest
 
 	foo.clear;
 
-	foreach(i; 0 .. foo.capacity)
+	foreach (i; 0 .. foo.capacity)
 	{
 		auto temp = new C;
-		temp.field = cast(int)i;
+		temp.field = cast(int) i;
 		foo.push(temp);
 	}
 
 	RingBuffer!(C, 8) bar;
-	foreach_reverse(c2; foo)
+	foreach_reverse (c2; foo)
 	{
 		auto temp = new C;
 		temp.field = c2.field;
@@ -368,7 +372,8 @@ nothrow pure @safe unittest
 	}
 
 	import std.range: enumerate;
-	foreach(i, temp; foo[].enumerate(0))
+
+	foreach (i, temp; foo[].enumerate(0))
 	{
 		assert(foo.shift.field == i);
 	}
