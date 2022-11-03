@@ -154,7 +154,7 @@ struct RingBuffer(DataType, size_t maxLength)
 		return RingBufferRangeInterface!(DataType, true)(data[], readIndex, length);
 	}
 
-	// ditto
+	/// ditto
 	auto opIndex() const
 	{
 		return RingBufferRangeInterface!(DataType, false)(data[], readIndex, length);
