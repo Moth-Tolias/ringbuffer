@@ -33,12 +33,13 @@ void main() @safe @nogc nothrow
 {
 	RingBuffer!(int, 5) buff;
 	buff.push(69);
-	buff ~= 420; // equivilent to the push syntax
+	buff ~= 420; // equivalent to the push syntax
 	assert(buff.shift == 69);
 	assert(buff.shift == 420);
 
-	import std.array : staticArray;
-	import std.range : iota;
+	import std.array: staticArray;
+	import std.range: iota;
+
 	immutable int[5] temp = staticArray!(iota(5));
 
 	buff.push(temp); // multiple items may be pushed in a single call
@@ -50,6 +51,9 @@ void main() @safe @nogc nothrow
 
 	assert(buff.length == 4);
 	assert(buff.capacity == 1);
+
+	buff.unshift(666);
+	assert(buff.shift == 666);
 
 	buff.clear();
 
