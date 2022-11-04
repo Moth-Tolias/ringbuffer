@@ -71,11 +71,17 @@ struct RingBuffer(DataType, size_t maxLength)
 	void opAssign(R)(R rhs)
 	in (rhs.length <= maxLength)
 	{
-		data[0 .. rhs.length] = rhs;
+		size_t temp;
+		foreach(element; rhs)
+		{
+			data[temp] = element;
+			++temp;
+		}
 		readIndex = 0;
 		writeIndex = rhs.length;
 	}
 
+	//todo: opBinary?
 	/// push to buffer (lifo)
 	void push(DataType rhs)
 	{
@@ -333,6 +339,8 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 		foo.unshift(i2);
 		assert(foo.pop == i2);
 	}
+
+	foo.unshift(bar);
 }
 
 nothrow pure @safe unittest
@@ -379,7 +387,8 @@ nothrow pure @safe unittest
 	}
 
 	RingBuffer!(C, 16) baz; //todo: put size as an enum into ringbuffer
-
+	foo ~= c;
+	baz = foo;
 	baz ~= foo;
 	baz.unshift(bar);
 }
