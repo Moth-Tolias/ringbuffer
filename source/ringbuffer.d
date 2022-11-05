@@ -71,14 +71,11 @@ struct RingBuffer(DataType, size_t maxLength)
 	void opAssign(R)(R rhs)
 	in (rhs.length <= maxLength)
 	{
-		size_t temp;
+		clear();
 		foreach(element; rhs)
 		{
-			data[temp] = element;
-			++temp;
+			push(element);
 		}
-		readIndex = 0;
-		writeIndex = rhs.length;
 	}
 
 	//todo: opBinary?
