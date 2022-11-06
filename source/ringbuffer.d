@@ -81,6 +81,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	//todo: opBinary?
 	/// push to buffer (lifo)
 	void push(DataType rhs)
+	in (length + 1 <= maxLength)
 	{
 		data[sanitize(writeIndex)] = rhs;
 		writeIndex = next(writeIndex + 1);
@@ -88,6 +89,7 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	/// ditto
 	void push(R)(R rhs)
+	in (length + rhs.length <= maxLength)
 	{
 		foreach (DataType d; rhs)
 		{
@@ -113,6 +115,7 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	/// push to buffer (fifo)
 	void unshift(DataType rhs)
+	in (length + 1 <= maxLength)
 	{
 		data[sanitize(readIndex - 1)] = rhs;
 		readIndex = next(readIndex - 1);
@@ -120,6 +123,7 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	/// ditto
 	void unshift(R)(R rhs)
+	in (length + rhs.length <= maxLength)
 	{
 		foreach (DataType d; rhs)
 		{
@@ -233,22 +237,26 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 	}
 
 	auto front()
+	in (length > 0)
 	{
 		return source[startIndex % source.length];
 	}
 
 	void popFront()
+	in (length > 0)
 	{
 		++startIndex;
 		--length;
 	}
 
 	auto back()
+	in (length > 0)
 	{
 		return source[(startIndex + length) % source.length];
 	}
 
 	void popBack()
+	in (length > 0)
 	{
 		--length;
 	}
