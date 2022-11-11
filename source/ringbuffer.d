@@ -236,7 +236,12 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 		return length == 0;
 	}
 
-	auto front()
+	auto save() inout
+	{
+		return this;//typeof(this)(source, startIndex, length);
+	}
+
+	auto front() inout
 	in (length > 0)
 	{
 		return source[startIndex % source.length];
@@ -249,10 +254,10 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 		--length;
 	}
 
-	auto back()
+	auto back() inout
 	in (length > 0)
 	{
-		return source[(startIndex + length) % source.length];
+		return source[(startIndex + length - 1) % source.length];
 	}
 
 	void popBack()
@@ -262,9 +267,11 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 	}
 }
 
+//todo: merge these tests into one single framework. repeating it all is tedious and error-prone.
 @nogc nothrow pure @safe unittest
 {
 	RingBuffer!(int, 8) foo;
+
 	assert(foo.length == 0);
 	assert(foo.capacity == 8);
 
@@ -282,6 +289,12 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 	foo.push(temp[3 .. 5]); //0, 1, 2, 3, 4
 	assert(foo.length == 5);
 	assert(foo.capacity == 3);
+
+	import std.range: retro, cycle, take;
+	import std.algorithm: equal;
+	assert(equal(foo[], temp[]));
+	assert(equal(foo[].retro, temp[].retro));
+	assert(equal(foo[].cycle.take(10), temp[].cycle.take(10)));
 
 	assert(foo.shift == 0); //1, 2, 3, 4
 	assert(foo.pop == 4); //1, 2, 3
@@ -359,6 +372,9 @@ nothrow pure @safe unittest
 	assert(foo.length == 0);
 	assert(foo.capacity == 6);
 
+	import std.range.primitives: isBidirectionalRange;
+	static assert(isBidirectionalRange!(typeof(foo[])));
+
 	C c = new C;
 
 	foo.push(c);
@@ -396,4 +412,25 @@ nothrow pure @safe unittest
 	baz = foo;
 	baz ~= foo;
 	baz.unshift(bar);
+
+	import std.array: staticArray;
+	import std.range: iota;
+	immutable int[5] temp = staticArray!(iota(5));
+	foo.clear;
+	foreach(a; temp)
+	{
+		auto bungus = new C;
+		bungus.field = a;
+		foo.push(bungus);
+	}
+	assert(foo.length == 5);
+
+	import std.range: retro, cycle, take;
+	import std.algorithm: equal;
+
+	bool piss(C a, int b)
+	{
+		return a.field == b;
+	}
+	assert(equal!(piss)(foo[].cycle.take(10), temp[].cycle.take(10)));
 }
