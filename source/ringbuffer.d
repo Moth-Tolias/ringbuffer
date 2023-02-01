@@ -220,7 +220,7 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 	}
 
 	private size_t startIndex;
-	private size_t length;
+	size_t length; // it would be nice if this was a read-only getter, but enumerate says no
 
 	@disable this();
 
@@ -265,12 +265,21 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 	{
 		--length;
 	}
+
+	auto opIndex(size_t index)
+	in (index < length)
+	{
+		return source[(startIndex + index) % source.length];
+	}
 }
 
 //todo: merge these tests into one single framework. repeating it all is tedious and error-prone.
 @nogc nothrow pure @safe unittest
 {
 	RingBuffer!(int, 8) foo;
+
+	import std.range.primitives: isRandomAccessRange;
+	static assert(isRandomAccessRange!(typeof(foo[])));
 
 	assert(foo.length == 0);
 	assert(foo.capacity == 8);
@@ -372,8 +381,8 @@ nothrow pure @safe unittest
 	assert(foo.length == 0);
 	assert(foo.capacity == 6);
 
-	import std.range.primitives: isBidirectionalRange;
-	static assert(isBidirectionalRange!(typeof(foo[])));
+	import std.range.primitives: isRandomAccessRange;
+	static assert(isRandomAccessRange!(typeof(foo[])));
 
 	C c = new C;
 
