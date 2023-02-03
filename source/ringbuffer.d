@@ -73,7 +73,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	in (rhs.length <= maxLength)
 	{
 		clear();
-		foreach(element; rhs)
+		foreach (element; rhs)
 		{
 			push(element);
 		}
@@ -280,6 +280,7 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 	RingBuffer!(int, 8) foo;
 
 	import std.range.primitives: isRandomAccessRange;
+
 	static assert(isRandomAccessRange!(typeof(foo[])));
 
 	assert(foo.length == 0);
@@ -302,14 +303,15 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 
 	import std.range: retro, cycle, take;
 	import std.algorithm: equal;
+
 	assert(equal(foo[], temp[]));
 	assert(equal(foo[].retro, temp[].retro));
 	assert(equal(foo[].cycle.take(10), temp[].cycle.take(10)));
 
 	auto savedFoo = foo[].save;
-	assert (savedFoo.front == 0);
+	assert(savedFoo.front == 0);
 	savedFoo.popFront();
-	assert (savedFoo.front == 1);
+	assert(savedFoo.front == 1);
 	assert(!equal(foo[], savedFoo));
 
 	assert(foo.shift == 0); //1, 2, 3, 4
@@ -389,6 +391,7 @@ nothrow pure @safe unittest
 	assert(foo.capacity == 6);
 
 	import std.range.primitives: isRandomAccessRange;
+
 	static assert(isRandomAccessRange!(typeof(foo[])));
 
 	C c = new C;
@@ -433,9 +436,10 @@ nothrow pure @safe unittest
 
 	import std.array: staticArray;
 	import std.range: iota;
+
 	immutable int[5] temp = staticArray!(iota(5));
 	foo.clear;
-	foreach(a; temp)
+	foreach (a; temp)
 	{
 		auto bungus = new C;
 		bungus.field = a;
@@ -444,9 +448,9 @@ nothrow pure @safe unittest
 	assert(foo.length == 5);
 
 	auto savedFoo = foo[].save;
-	assert (savedFoo.front.field == 0);
+	assert(savedFoo.front.field == 0);
 	savedFoo.popFront();
-	assert (savedFoo.front.field == 1);
+	assert(savedFoo.front.field == 1);
 	assert(foo[0].field == 0);
 	const cFoo = foo;
 	assert(cFoo[][0].field == 0);
@@ -458,5 +462,6 @@ nothrow pure @safe unittest
 	{
 		return a.field == b;
 	}
+
 	assert(equal!(piss)(foo[].cycle.take(10), temp[].cycle.take(10)));
 }
