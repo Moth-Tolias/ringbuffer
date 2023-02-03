@@ -305,6 +305,12 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 	assert(equal(foo[].retro, temp[].retro));
 	assert(equal(foo[].cycle.take(10), temp[].cycle.take(10)));
 
+	auto savedFoo = foo[].save;
+	assert (savedFoo.front == 0);
+	savedFoo.popFront();
+	assert (savedFoo.front == 1);
+	assert(!equal(foo[], savedFoo));
+
 	assert(foo.shift == 0); //1, 2, 3, 4
 	assert(foo.pop == 4); //1, 2, 3
 
@@ -390,6 +396,8 @@ nothrow pure @safe unittest
 	assert(foo[0] is c);
 	assert(foo.shift is c);
 	foo.push(c);
+	foo[0].field = 69;
+	assert(foo[0].field == 69);
 	assert(foo.pop is c);
 
 	foo.clear;
@@ -434,8 +442,16 @@ nothrow pure @safe unittest
 	}
 	assert(foo.length == 5);
 
-	import std.range: retro, cycle, take;
+	auto savedFoo = foo[].save;
+	assert (savedFoo.front.field == 0);
+	savedFoo.popFront();
+	assert (savedFoo.front.field == 1);
+	assert(foo[0].field == 0);
+	const cFoo = foo;
+	assert(cFoo[][0].field == 0);
+
 	import std.algorithm: equal;
+	import std.range: retro, cycle, take;
 
 	bool piss(C a, int b)
 	{
