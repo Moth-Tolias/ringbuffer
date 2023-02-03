@@ -372,7 +372,7 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 
 nothrow pure @safe unittest
 {
-	class C
+	final class C
 	{
 		int field;
 	}
