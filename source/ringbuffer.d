@@ -19,7 +19,8 @@ struct RingBuffer(DataType, size_t maxLength)
 
 	private auto _length() const @nogc nothrow pure @safe
 	{
-		//todo: there is almost certainly a better way to go about this
+		//todo: there is almost certainly a better way to go about this.
+		//it probably involves cycle(), which we should have been using since the beginning...
 		if (writeIndex == readIndex)
 		{
 			return 0;
@@ -238,7 +239,7 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 
 	auto save() inout
 	{
-		return this;//typeof(this)(source, startIndex, length);
+		return this;
 	}
 
 	auto front() inout
