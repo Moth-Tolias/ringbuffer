@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2023-02-03
+
 ### Added:
 - This changelog, which serves as a replacement to the github releases changelog.
 - Ringbuffers and their range interfaces can now be indexed using the `[n]` operator.
