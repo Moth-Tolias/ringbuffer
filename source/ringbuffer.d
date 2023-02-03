@@ -168,7 +168,7 @@ struct RingBuffer(DataType, size_t maxLength)
 	}
 
 	///
-	auto opIndex(in size_t index)
+	auto opIndex(in size_t index) inout
 	in (index < length)
 	{
 		return data[sanitize(readIndex + index)];
@@ -266,7 +266,7 @@ private struct RingBufferRangeInterface(DataType, bool isSourceMutable)
 		--length;
 	}
 
-	auto opIndex(size_t index)
+	auto opIndex(size_t index) inout
 	in (index < length)
 	{
 		return source[(startIndex + index) % source.length];
